@@ -33,10 +33,22 @@
                 <div id="columnsList" class="columns-list"></div>
             </div>
 
+            <div class="split-options">
+                <div class="split-row-control">
+                    <label for="rowsPerFile">Rows per file:</label>
+                    <input type="number" id="rowsPerFile" min="1" placeholder="All rows">
+                    <span id="totalRows" class="total-rows"></span>
+                </div>
+                <div class="info-text">
+                    Leave empty to export as a single file
+                </div>
+            </div>
+
             <button id="exportBtn" class="btn export-btn">Export Selected Columns</button>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
