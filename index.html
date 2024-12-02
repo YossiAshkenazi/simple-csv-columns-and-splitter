@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Column Splitter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>CSV Column Splitter</h1>
+        
+        <div class="file-section">
+            <label for="csvFile" class="file-label">Select CSV File:</label>
+            <div class="file-input-container">
+                <input type="file" id="csvFile" accept=".csv" class="file-input">
+            </div>
+        </div>
+
+        <div class="columns-section" id="columnsSection">
+            <div class="search-container">
+                <label for="searchInput">Search:</label>
+                <input type="text" id="searchInput" placeholder="Search columns...">
+            </div>
+
+            <div class="select-buttons">
+                <button id="selectAll" class="btn">Select All</button>
+                <button id="deselectAll" class="btn">Deselect All</button>
+            </div>
+
+            <div class="columns-container">
+                <div id="columnsList" class="columns-list"></div>
+            </div>
+
+            <button id="exportBtn" class="btn export-btn">Export Selected Columns</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
