@@ -14,8 +14,10 @@ class CSVColumnSplitter {
         this.selectAllBtn = document.getElementById('selectAll');
         this.deselectAllBtn = document.getElementById('deselectAll');
         this.exportBtn = document.getElementById('exportBtn');
+        this.copyBtn = document.getElementById('copyBtn');
         this.rowsPerFileInput = document.getElementById('rowsPerFile');
         this.totalRowsSpan = document.getElementById('totalRows');
+        this.outputFormatRadios = document.getElementsByName('outputFormat');
     }
 
     addEventListeners() {
@@ -24,6 +26,7 @@ class CSVColumnSplitter {
         this.selectAllBtn.addEventListener('click', () => this.selectAll());
         this.deselectAllBtn.addEventListener('click', () => this.deselectAll());
         this.exportBtn.addEventListener('click', () => this.exportSelectedColumns());
+        this.copyBtn.addEventListener('click', () => this.copyToClipboard());
     }
 
     handleFileSelect(event) {
@@ -96,6 +99,59 @@ class CSVColumnSplitter {
         checkboxes.forEach(checkbox => checkbox.checked = false);
     }
 
+    getSelectedFormat() {
+        return Array.from(this.outputFormatRadios).find(radio => radio.checked)?.value || 'csv';
+    }
+
+    getFilteredData(selectedColumns) {
+        return this.data.map(row => {
+            const filteredRow = {};
+            selectedColumns.forEach(column => {
+                filteredRow[column] = row[column];
+            });
+            return filteredRow;
+        });
+    }
+
+    splitDataIntoChunks(data, rowsPerFile) {
+        const chunks = [];
+        for (let i = 0; i < data.length; i += rowsPerFile) {
+            chunks.push(data.slice(i, i + rowsPerFile));
+        }
+        return chunks;
+    }
+
+    async copyToClipboard() {
+        const selectedColumns = Array.from(this.columnsList.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(checkbox => checkbox.value);
+
+        if (selectedColumns.length === 0) {
+            alert('Please select at least one column to copy.');
+            return;
+        }
+
+        const filteredData = this.getFilteredData(selectedColumns);
+        const format = this.getSelectedFormat();
+        let content;
+
+        if (format === 'json') {
+            content = JSON.stringify(filteredData, null, 2);
+        } else {
+            content = Papa.unparse(filteredData);
+        }
+
+        try {
+            await navigator.clipboard.writeText(content);
+            this.copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                this.copyBtn.textContent = 'Copy to Clipboard';
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard. Please try again.');
+        }
+    }
+
     async exportSelectedColumns() {
         const selectedColumns = Array.from(this.columnsList.querySelectorAll('input[type="checkbox"]:checked'))
             .map(checkbox => checkbox.value);
@@ -105,23 +161,54 @@ class CSVColumnSplitter {
             return;
         }
 
-        const filteredData = this.data.map(row => {
-            const newRow = {};
-            selectedColumns.forEach(column => {
-                newRow[column] = row[column];
-            });
-            return newRow;
-        });
-
+        const filteredData = this.getFilteredData(selectedColumns);
+        const format = this.getSelectedFormat();
         const rowsPerFile = parseInt(this.rowsPerFileInput.value) || filteredData.length;
-        const numberOfFiles = Math.ceil(filteredData.length / rowsPerFile);
+        const zip = new JSZip();
 
-        if (numberOfFiles === 1) {
-            // Export as a single file
-            this.downloadSingleFile(filteredData);
+        if (rowsPerFile >= filteredData.length) {
+            // Single file export
+            const filename = `export.${format}`;
+            let content;
+
+            if (format === 'json') {
+                content = JSON.stringify(filteredData, null, 2);
+            } else {
+                content = Papa.unparse(filteredData);
+            }
+
+            const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         } else {
-            // Export as multiple files in a ZIP
-            await this.downloadMultipleFiles(filteredData, rowsPerFile, numberOfFiles);
+            // Multiple files export
+            const chunks = this.splitDataIntoChunks(filteredData, rowsPerFile);
+            
+            chunks.forEach((chunk, index) => {
+                let content;
+                if (format === 'json') {
+                    content = JSON.stringify(chunk, null, 2);
+                } else {
+                    content = Papa.unparse(chunk);
+                }
+                zip.file(`export_${index + 1}.${format}`, content);
+            });
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'exports.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     }
 

@@ -34,6 +34,15 @@
             </div>
 
             <div class="split-options">
+                <div class="output-format">
+                    <label>Output Format:</label>
+                    <div class="format-options">
+                        <input type="radio" id="csvFormat" name="outputFormat" value="csv" checked>
+                        <label for="csvFormat">CSV</label>
+                        <input type="radio" id="jsonFormat" name="outputFormat" value="json">
+                        <label for="jsonFormat">JSON</label>
+                    </div>
+                </div>
                 <div class="split-row-control">
                     <label for="rowsPerFile">Rows per file:</label>
                     <input type="number" id="rowsPerFile" min="1" placeholder="All rows">
@@ -44,7 +53,10 @@
                 </div>
             </div>
 
-            <button id="exportBtn" class="btn export-btn">Export Selected Columns</button>
+            <div class="action-buttons">
+                <button id="exportBtn" class="btn export-btn">Download Files</button>
+                <button id="copyBtn" class="btn copy-btn">Copy to Clipboard</button>
+            </div>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
